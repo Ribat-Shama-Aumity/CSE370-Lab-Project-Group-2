@@ -328,7 +328,11 @@ $roomCount = mysqli_num_rows($result);
     <?php while ($room = mysqli_fetch_assoc($result)) { ?>
 
 
-    <div class="room-card">
+        <div class="room-card">
+
+
+           <a href="room.php?id=<?php echo $room["ListingID"]; ?>"
+              style="text-decoration:none; color:inherit; display:block;">
 
 
         <h3>
@@ -386,6 +390,9 @@ $roomCount = mysqli_num_rows($result);
             <?php echo $room["Campus"]; ?> km
 
         </div>
+
+
+      </a>
 
 
         <button

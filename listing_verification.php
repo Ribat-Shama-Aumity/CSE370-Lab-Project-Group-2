@@ -527,6 +527,117 @@ $result = mysqli_query($conn, $sql);
                 </div>
 
 
+                                <!-- ====================================================
+                     PHOTOS AND UTILITIES
+                     ----------------------------------------------------
+                     These two queries run once for every listing card,
+                     because each listing has its own photos and its own
+                     utility amounts.
+                ==================================================== -->
+
+                <?php
+
+                $this_id = $listing["ListingID"];
+
+
+                // ----- photos of this listing -----
+
+                $photo_sql = "SELECT * FROM Listing_Photo
+                              WHERE ListingID = '$this_id'
+                              ORDER BY PhotoID ASC";
+
+                $photo_result = mysqli_query($conn, $photo_sql);
+
+                ?>
+
+
+                <div class="info" style="margin-top:15px;">
+
+                    <strong>Room Photos:</strong>
+
+                </div>
+
+
+                <?php if (mysqli_num_rows($photo_result) > 0) { ?>
+
+                    <div style="display:flex; gap:10px; flex-wrap:wrap;
+                                margin-top:8px;">
+
+                        <?php while ($photo = mysqli_fetch_assoc($photo_result)) { ?>
+
+                            <a href="<?php echo htmlspecialchars($photo["PhotoURL"]); ?>"
+                               target="_blank">
+
+                                <img
+                                    src="<?php echo htmlspecialchars($photo["PhotoURL"]); ?>"
+                                    style="width:130px; height:95px;
+                                           object-fit:cover; border-radius:7px;"
+                                    alt="Room photo">
+
+                            </a>
+
+                        <?php } ?>
+
+                    </div>
+
+                <?php } else { ?>
+
+                    <div class="info" style="color:#888;">
+                        No photos uploaded.
+                    </div>
+
+                <?php } ?>
+
+
+                <?php
+
+                // ----- utilities of this listing -----
+
+                $utility_sql = "SELECT * FROM Listing_Utility
+                                WHERE ListingID = '$this_id'
+                                ORDER BY UtilityName ASC";
+
+                $utility_result = mysqli_query($conn, $utility_sql);
+
+                ?>
+
+
+                <div class="info" style="margin-top:15px;">
+
+                    <strong>Utilities:</strong>
+
+
+                    <?php if (mysqli_num_rows($utility_result) > 0) { ?>
+
+                        <?php while ($utility = mysqli_fetch_assoc($utility_result)) { ?>
+
+                            <?php
+                            echo htmlspecialchars($utility["UtilityName"]);
+                            ?>
+
+                            <?php
+                            echo htmlspecialchars($utility["Amount"]);
+                            ?>
+
+                            <?php
+                            echo htmlspecialchars($listing["Currency"]);
+                            ?>
+
+                            &nbsp;&nbsp;
+
+                        <?php } ?>
+
+                    <?php } else { ?>
+
+                        <span style="color:#888;">
+                            None added.
+                        </span>
+
+                    <?php } ?>
+
+                </div>
+
+
 
                 <!-- PROVIDER -->
 

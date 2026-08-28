@@ -35,6 +35,15 @@ if (isset($_POST["add_listing"])) {
 
     $provider_id = $_SESSION["Provider_ID"];
 
+    
+    // ===== UTILITY AMOUNTS =====
+
+    $electricity = $_POST["electricity"];
+    $wifi = $_POST["wifi"];
+    $gas = $_POST["gas"];
+    $water = $_POST["water"];
+    $heating = $_POST["heating"];
+
 
     /*
        Legal document upload
@@ -117,6 +126,104 @@ if (isset($_POST["add_listing"])) {
 
 
     if (mysqli_query($conn, $sql)) {
+
+
+        // ====================================================
+        // GET THE ID OF THE LISTING WE JUST SAVED
+        // ----------------------------------------------------
+        // ListingID is AUTO_INCREMENT, so we did not choose
+        // it. mysqli_insert_id() asks MySQL "what number did
+        // you just give that row?"
+        // We need it for the utility and photo rows.
+        // ====================================================
+
+        $new_listing_id = mysqli_insert_id($conn);
+
+
+        // ====================================================
+        // SAVE THE FOUR UTILITIES
+        // ----------------------------------------------------
+        // One row per utility, because Listing_Utility holds
+        // one utility per row.
+        // ====================================================
+
+        $utility_sql = "INSERT INTO Listing_Utility
+                        (ListingID, UtilityName, Amount)
+                        VALUES
+                        ('$new_listing_id', 'Electricity', '$electricity'),
+                        ('$new_listing_id', 'Wifi', '$wifi'),
+                        ('$new_listing_id', 'Gas', '$gas'),
+                        ('$new_listing_id', 'Water', '$water'),
+                        ('$new_listing_id', 'Heating', '$heating')";
+
+        mysqli_query($conn, $utility_sql);
+
+
+        // ====================================================
+        // SAVE THE PHOTOS
+        // ----------------------------------------------------
+        // Photos go in their own folder, so public room
+        // pictures are not mixed with private legal papers.
+        //
+        // Photos are optional. We look at each of the three
+        // boxes and only save the ones that have a file.
+        // ====================================================
+
+        $photo_folder = "uploads/photos/";
+
+
+        if (!is_dir($photo_folder)) {
+
+            mkdir($photo_folder, 0777, true);
+
+        }
+
+
+        $photo_boxes = array("photo1", "photo2", "photo3");
+
+        $photo_number = 1;
+
+
+        foreach ($photo_boxes as $one_box) {
+
+
+            if (
+                isset($_FILES[$one_box]) &&
+                $_FILES[$one_box]["error"] == 0
+            ) {
+
+                // build a file name nobody else will have
+
+                $photo_path =
+                    $photo_folder . time() . "_" .
+                    $photo_number . "_" .
+                    basename($_FILES[$one_box]["name"]);
+
+
+                move_uploaded_file(
+                    $_FILES[$one_box]["tmp_name"],
+                    $photo_path
+                );
+
+
+                $safe_photo =
+                    mysqli_real_escape_string($conn, $photo_path);
+
+
+                $photo_sql = "INSERT INTO Listing_Photo
+                              (ListingID, PhotoURL)
+                              VALUES
+                              ('$new_listing_id', '$safe_photo')";
+
+                mysqli_query($conn, $photo_sql);
+
+
+                $photo_number = $photo_number + 1;
+
+            }
+
+        }
+
 
         $message =
             "Listing submitted successfully! Waiting for admin verification.";
@@ -520,6 +627,106 @@ if (isset($_POST["add_listing"])) {
             required
         >
 
+                <!-- ===== UTILITY COSTS ===== -->
+
+        <label>
+            Electricity (per month)
+        </label>
+
+        <input
+            type="number"
+            step="0.01"
+            name="electricity"
+            placeholder="Example: 1200 (type 0 if not included)"
+            required
+        >
+
+
+        <label>
+            Wifi (per month)
+        </label>
+
+        <input
+            type="number"
+            step="0.01"
+            name="wifi"
+            placeholder="Example: 800 (type 0 if not included)"
+            required
+        >
+
+
+        <label>
+            Gas (per month)
+        </label>
+
+        <input
+            type="number"
+            step="0.01"
+            name="gas"
+            placeholder="Example: 500 (type 0 if not included)"
+            required
+        >
+
+
+        <label>
+            Water (per month)
+        </label>
+
+        <input
+            type="number"
+            step="0.01"
+            name="water"
+            placeholder="Example: 300 (type 0 if not included)"
+            required
+        >
+
+
+        <label>
+            Heating (per month)
+        </label>
+
+        <input
+            type="number"
+            step="0.01"
+            name="heating"
+            placeholder="Example: 0 (type 0 if not included)"
+            required
+        >
+
+
+        <!-- ===== ROOM PHOTOS (optional) ===== -->
+
+        <label>
+            Room Photo 1 (optional)
+        </label>
+
+        <input
+            type="file"
+            name="photo1"
+            accept="image/*"
+        >
+
+
+        <label>
+            Room Photo 2 (optional)
+        </label>
+
+        <input
+            type="file"
+            name="photo2"
+            accept="image/*"
+        >
+
+
+        <label>
+            Room Photo 3 (optional)
+        </label>
+
+        <input
+            type="file"
+            name="photo3"
+            accept="image/*"
+        >
 
         <!-- LEGAL DOCUMENT -->
 
