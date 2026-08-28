@@ -21,6 +21,26 @@ $result = mysqli_query($conn, $sql);
 
 $roomCount = mysqli_num_rows($result);
 
+/* Get student's bookmarked listings */
+
+$student_id = $_SESSION["Std_ID"];
+
+$bookmark_sql = "
+    SELECT ListingID
+    FROM bookmarks
+    WHERE Std_ID = '$student_id'
+";
+
+$bookmark_result = mysqli_query($conn, $bookmark_sql);
+
+$bookmarked_ids = [];
+
+while ($bookmark = mysqli_fetch_assoc($bookmark_result)) {
+
+    $bookmarked_ids[] = $bookmark["ListingID"];
+
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -130,6 +150,8 @@ $roomCount = mysqli_num_rows($result);
     /* ROOM CARD */
 
     .room-card {
+        position: relative;
+
         background-color: white;
 
         border-radius: 10px;
@@ -232,7 +254,188 @@ $roomCount = mysqli_num_rows($result);
         vertical-align: middle;
     }
 
+    /* =====================================================
+   BOOKMARK POPUP
+   ===================================================== */
 
+.bookmark-popup {
+
+    display: none;
+
+    position: absolute;
+
+    top: 65px;
+
+    right: 100px;
+
+    width: 330px;
+
+    background-color: white;
+
+    border-radius: 8px;
+
+    box-shadow:
+        0 4px 15px rgba(0,0,0,0.2);
+
+    z-index: 1000;
+
+    color: #222;
+
+}
+
+
+/* HEADER */
+
+.bookmark-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding: 15px;
+
+    border-bottom: 1px solid #ddd;
+
+    color: #000080;
+
+    font-size: 17px;
+
+}
+
+
+#closeBookmarks {
+
+    font-size: 22px;
+
+    color: #666;
+
+    cursor: pointer;
+
+}
+
+
+/* BOOKMARK ITEM */
+
+.bookmark-item {
+
+    padding: 12px 15px;
+
+    border-bottom: 1px solid #eee;
+
+}
+
+
+.bookmark-item:hover {
+
+    background-color: #f5f5f5;
+
+}
+
+
+.bookmark-item h4 {
+
+    margin: 0 0 5px 0;
+
+    color: #000080;
+
+    font-size: 16px;
+
+}
+
+
+.bookmark-item p {
+
+    margin: 3px 0;
+
+    font-size: 13px;
+
+    color: #666;
+
+}
+
+
+/* NO BOOKMARKS */
+
+.no-bookmarks {
+
+    padding: 25px;
+
+    text-align: center;
+
+    color: #666;
+
+    line-height: 1.5;
+
+}
+
+
+.explore-link {
+
+    display: block;
+
+    margin-top: 10px;
+
+    color: #000080;
+
+    font-weight: bold;
+
+    text-decoration: none;
+
+}
+
+
+.explore-link:hover {
+
+    text-decoration: underline;
+
+}
+
+/* BOOKMARK HEART */
+
+.room-card {
+    position: relative;
+}
+
+
+.bookmark-heart {
+
+    position: absolute;
+
+    top: 15px;
+
+    right: 15px;
+
+    background: none;
+
+    border: none;
+
+    font-size: 28px;
+
+    color: #777;
+
+    cursor: pointer;
+
+    padding: 0;
+
+    line-height: 1;
+
+}
+
+
+.bookmark-heart:hover {
+
+    color: #000080;
+
+}
+
+
+.bookmark-heart.saved {
+
+    color: red;
+
+}
 </style>
 
 </head>
@@ -263,6 +466,10 @@ $roomCount = mysqli_num_rows($result);
         <a href="verify.php">
             Verify Account
         </a>
+
+        <a href="#" id="bookmarkLink">
+            Bookmarks
+         </a>
 		
 		<a href="faq.php">
             FAQ
@@ -329,6 +536,41 @@ $roomCount = mysqli_num_rows($result);
 
 
         <div class="room-card">
+           
+            <?php
+
+             $is_bookmarked = in_array(
+                 $room["ListingID"],
+                 $bookmarked_ids
+           );
+
+            ?>
+
+
+             <button
+
+                  class="bookmark-heart
+                 <?php echo $is_bookmarked ? 'saved' : ''; ?>"
+
+                 onclick="toggleBookmark(
+                     <?php echo $room['ListingID']; ?>,
+                     this
+                 )"
+
+                 type="button"
+
+             >
+
+                 <?php
+
+                 echo $is_bookmarked ? "♥" : "♡";
+
+                 ?>
+
+             </button>
+           
+
+
 
 
            <a href="room.php?id=<?php echo $room["ListingID"]; ?>"
@@ -424,6 +666,208 @@ $roomCount = mysqli_num_rows($result);
 
 
 <?php } ?>
+<!-- =====================================================
+     BOOKMARK POPUP
+     ===================================================== -->
+
+<div id="bookmarkPopup" class="bookmark-popup">
+
+
+    <div class="bookmark-header">
+
+        <strong>
+            Your Bookmarks
+        </strong>
+
+
+        <span id="closeBookmarks">
+            ×
+        </span>
+
+    </div>
+
+
+    <div id="bookmarkContent">
+
+        Loading...
+
+    </div>
+
+
+</div>
+
+<!-- BOOKMARK JAVASCRIPT -->
+<script>
+
+function toggleBookmark(listingID, button) {
+
+    let formData = new FormData();
+
+    formData.append("toggle", "1");
+
+    formData.append("listing_id", listingID);
+
+
+    fetch("bookmark.php", {
+
+        method: "POST",
+
+        body: formData
+
+    })
+
+    .then(response => response.json())
+
+    .then(data => {
+
+        if (data.success) {
+
+            if (data.bookmarked) {
+
+                button.innerHTML = "♥";
+
+                button.classList.add("saved");
+
+            } else {
+
+                button.innerHTML = "♡";
+
+                button.classList.remove("saved");
+
+            }
+
+        }
+
+    })
+
+    .catch(error => {
+
+        console.log(error);
+
+    });
+
+}
+
+
+/* OPEN BOOKMARKS */
+
+document
+.getElementById("bookmarkLink")
+.addEventListener("click", function(event) {
+
+    event.preventDefault();
+
+    let popup =
+        document.getElementById("bookmarkPopup");
+
+    popup.style.display = "block";
+
+    loadBookmarks();
+
+});
+
+
+/* CLOSE BOOKMARKS */
+
+document
+.getElementById("closeBookmarks")
+.addEventListener("click", function() {
+
+    document
+    .getElementById("bookmarkPopup")
+    .style.display = "none";
+
+});
+
+
+/* LOAD BOOKMARKS */
+
+function loadBookmarks() {
+
+    let content =
+        document.getElementById("bookmarkContent");
+
+    fetch("bookmark.php?get=1")
+
+    .then(response => response.json())
+
+    .then(data => {
+
+        if (data.bookmarks.length === 0) {
+
+            content.innerHTML = `
+
+                <div class="no-bookmarks">
+
+                    <div style="font-size:40px;">
+                        ♡
+                    </div>
+
+                    <div>
+                        You haven't saved anything.
+                    </div>
+
+                    <div>
+                        Want to explore more?
+                    </div>
+
+                    <a
+                        href="dashboard.php"
+                        class="explore-link"
+                    >
+                        Go to Dashboard
+                    </a>
+
+                </div>
+
+            `;
+
+            return;
+        }
+
+
+        content.innerHTML = "";
+
+
+        data.bookmarks.forEach(function(room) {
+
+            let item =
+                document.createElement("div");
+
+            item.className =
+                "bookmark-item";
+
+            item.innerHTML = `
+
+                <h4>
+                    ${room.RoomType}
+                </h4>
+
+                <p>
+                    ${room.Neighbourhood},
+                    ${room.State},
+                    ${room.Country}
+                </p>
+
+                <p>
+                    <strong>
+                        ${Number(room.Price).toFixed(2)}
+                        ${room.Currency}
+                    </strong>
+                    / month
+                </p>
+
+            `;
+
+            content.appendChild(item);
+
+        });
+
+    });
+
+}
+
+</script>
 
 
 </body>
