@@ -47,7 +47,7 @@ INSERT INTO `admin` (`Admin_ID`, `Email`, `Password`) VALUES
 -- Table structure for table `bookmark`
 --
 
-CREATE TABLE `bookmark` (
+CREATE TABLE `bookmarks` (
   `Std_ID` int(11) NOT NULL,
   `ListingID` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -56,7 +56,7 @@ CREATE TABLE `bookmark` (
 -- Dumping data for table `bookmark`
 --
 
-INSERT INTO `bookmark` (`Std_ID`, `ListingID`) VALUES
+INSERT INTO `bookmarks` (`Std_ID`, `ListingID`) VALUES
 (23101001, 3),
 (23101001, 5),
 (23101002, 1),
@@ -279,7 +279,7 @@ ALTER TABLE `admin`
 --
 -- Indexes for table `bookmark`
 --
-ALTER TABLE `bookmark`
+ALTER TABLE `bookmarks`
   ADD PRIMARY KEY (`Std_ID`,`ListingID`),
   ADD KEY `ListingID` (`ListingID`);
 
@@ -372,9 +372,9 @@ ALTER TABLE `student`
 --
 
 --
--- Constraints for table `bookmark`
+-- Constraints for table `bookmarks`
 --
-ALTER TABLE `bookmark`
+ALTER TABLE `bookmarks`
   ADD CONSTRAINT `bookmark_ibfk_1` FOREIGN KEY (`Std_ID`) REFERENCES `student` (`Std_ID`) ON DELETE CASCADE,
   ADD CONSTRAINT `bookmark_ibfk_2` FOREIGN KEY (`ListingID`) REFERENCES `listings` (`ListingID`) ON DELETE CASCADE;
 

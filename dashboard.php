@@ -838,6 +838,9 @@ function loadBookmarks() {
                 "bookmark-item";
 
             item.innerHTML = `
+               
+                <a href="room.php?id=${room.ListingID}"
+                   style="text-decoration:none; color:inherit; display:block;">
 
                 <h4>
                     ${room.RoomType}
@@ -856,7 +859,7 @@ function loadBookmarks() {
                     </strong>
                     / month
                 </p>
-
+               </a>
             `;
 
             content.appendChild(item);

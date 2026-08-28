@@ -60,7 +60,7 @@ if (isset($_GET["fav"])) {
 
     if ($fav == "add") {
 
-        $sql = "INSERT INTO Bookmark (Std_ID, ListingID)
+        $sql = "INSERT INTO bookmarks (Std_ID, ListingID)
                 VALUES ('$std_id', '$safe_id')";
 
         mysqli_query($conn, $sql);
@@ -69,7 +69,7 @@ if (isset($_GET["fav"])) {
 
     else if ($fav == "remove") {
 
-        $sql = "DELETE FROM Bookmark
+        $sql = "DELETE FROM bookmarks
                 WHERE Std_ID = '$std_id'
                 AND ListingID = '$safe_id'";
 
@@ -138,7 +138,7 @@ $room = mysqli_fetch_assoc($result);
 // We only need to know YES or NO, so we count the rows.
 // ============================================================
 
-$fav_sql = "SELECT * FROM Bookmark
+$fav_sql = "SELECT * FROM bookmarks
             WHERE Std_ID = '$std_id'
             AND ListingID = '$safe_id'";
 
