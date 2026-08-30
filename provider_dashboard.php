@@ -154,10 +154,12 @@ $result = mysqli_query($conn, $sql);
 $notifications = [];
 $notification_count = 0;
 
-$notification_sql = "SELECT *
-                     FROM notifications
-                     WHERE user_id = '$provider_id'
-                     ORDER BY created_at DESC
+$notification_sql = "SELECT n.*, v.student_id
+                     FROM notifications n
+                     LEFT JOIN virtual_tour_bookings v
+                        ON n.booking_id = v.id
+                     WHERE n.user_id = '$provider_id'
+                     ORDER BY n.created_at DESC
                      LIMIT 10";
 
 $notification_result = mysqli_query($conn, $notification_sql);
@@ -193,6 +195,8 @@ $tour_sql = "SELECT
              FROM virtual_tour_bookings v
              LEFT JOIN Listings l
                 ON v.listing_id = l.ListingID
+            LEFT JOIN Student s
+                ON v.student_id = s.Std_ID
              WHERE v.provider_id = '$provider_id'
              AND v.status = 'Pending'
              ORDER BY v.tour_date ASC, v.tour_time ASC";
@@ -388,6 +392,32 @@ $pending_tour_count = count($pending_tours);
             display: flex;
             gap: 8px;
         }
+
+        .notification-student {
+             margin-top: 8px;
+             font-size: 14px;
+             color: #555;
+        }
+
+         .notification-student a {
+             color: navy;
+             font-weight: bold;
+             text-decoration: none;
+        }
+
+         .notification-student a:hover {
+             text-decoration: underline;
+        }
+
+        .student-profile-link {
+             color: navy;
+             font-weight: bold;
+            text-decoration: none;
+        }
+
+         .student-profile-link:hover {
+             text-decoration: underline;
+         }
 
         .confirm-button,
         .reject-button {
@@ -794,6 +824,37 @@ $pending_tour_count = count($pending_tours);
                                 ?>
                             </div>
 
+                            <?php if (!empty($notification["student_id"])) { ?>
+
+  <?php
+    $student_id = (int)$notification["student_id"];
+
+    $student_sql = "SELECT Std_ID, Name
+                    FROM Student
+                    WHERE Std_ID = '$student_id'
+                    LIMIT 1";
+
+    $student_result = mysqli_query($conn, $student_sql);
+
+    if ($student_result && mysqli_num_rows($student_result) > 0) {
+        $student = mysqli_fetch_assoc($student_result);
+    }
+    ?>
+
+    <?php if (isset($student)) { ?>
+
+        <div class="notification-student">
+            <strong>Student:</strong>
+
+            <a href="student_profile.php?id=<?php echo $student_id; ?>">
+                <?php echo htmlspecialchars($student["Name"]); ?>
+            </a>
+        </div>
+
+    <?php } ?>
+
+<?php } ?>
+
                             <div class="notification-message">
                                 <?php
                                 echo htmlspecialchars(
@@ -901,7 +962,19 @@ $pending_tour_count = count($pending_tours);
                     <h3>
                         New Virtual Tour Request
                     </h3>
+                    
+                      <!-- STUDENT -->
+                     <p>
+                         <strong>Student:</strong>
 
+                         <a 
+                           href="student_profile.php?id=<?php echo $tour["student_id"]; ?>"
+                           class="student-profile-link"
+                         >
+                           <?php echo htmlspecialchars($tour["student_name"]); ?>
+                         </a>
+                     </p>
+                     
                     <p>
                         <strong>Room:</strong>
                         <?php
