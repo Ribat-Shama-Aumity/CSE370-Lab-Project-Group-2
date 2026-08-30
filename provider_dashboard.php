@@ -18,6 +18,99 @@ include "DBconnect.php";
 
 $provider_id = $_SESSION["Provider_ID"];
 
+/*
+|--------------------------------------------------------------------------
+| Handle Virtual Tour confirmation / rejection
+|--------------------------------------------------------------------------
+*/
+if (isset($_GET["tour_action"]) && isset($_GET["tour_id"])) {
+
+    $tour_id = (int) $_GET["tour_id"];
+    $tour_action = $_GET["tour_action"];
+
+    if ($tour_action == "confirm") {
+        $new_status = "Confirmed";
+    } elseif ($tour_action == "reject") {
+        $new_status = "Rejected";
+    } else {
+        $new_status = "";
+    }
+
+    if ($new_status != "") {
+
+        $stmt = mysqli_prepare(
+            $conn,
+            "UPDATE virtual_tour_bookings
+             SET status = ?
+             WHERE id = ? AND provider_id = ?"
+        );
+
+        if ($stmt) {
+            mysqli_stmt_bind_param(
+                $stmt,
+                "sii",
+                $new_status,
+                $tour_id,
+                $provider_id
+            );
+
+            if (mysqli_stmt_execute($stmt)) {
+                mysqli_stmt_close($stmt);
+
+                // Notify the student after the provider confirms/rejects the tour.
+                $tour_info_sql = "SELECT student_id, tour_date, tour_time
+                                  FROM virtual_tour_bookings
+                                  WHERE id = '$tour_id'
+                                  AND provider_id = '$provider_id'
+                                  LIMIT 1";
+                $tour_info_result = mysqli_query($conn, $tour_info_sql);
+
+                if ($tour_info_result && mysqli_num_rows($tour_info_result) > 0) {
+                    $tour_info = mysqli_fetch_assoc($tour_info_result);
+                    $student_id = $tour_info["student_id"];
+
+                    if ($new_status == "Confirmed") {
+                        $student_message = "Your virtual tour has been confirmed for "
+                                         . date("d M Y", strtotime($tour_info["tour_date"]))
+                                         . " at "
+                                         . date("h:i A", strtotime($tour_info["tour_time"])) . ".";
+                    } else {
+                        $student_message = "Your virtual tour request for "
+                                         . date("d M Y", strtotime($tour_info["tour_date"]))
+                                         . " at "
+                                         . date("h:i A", strtotime($tour_info["tour_time"]))
+                                         . " was rejected by the provider.";
+                    }
+
+                    $student_notice_stmt = mysqli_prepare(
+                        $conn,
+                        "INSERT INTO notifications
+                         (user_id, booking_id, message, type, is_read, created_at)
+                         VALUES (?, ?, ?, 'Virtual Tour Update', 0, NOW())"
+                    );
+
+                    if ($student_notice_stmt) {
+                        mysqli_stmt_bind_param(
+                            $student_notice_stmt,
+                            "iis",
+                            $student_id,
+                            $tour_id,
+                            $student_message
+                        );
+                        mysqli_stmt_execute($student_notice_stmt);
+                        mysqli_stmt_close($student_notice_stmt);
+                    }
+                }
+            } else {
+                mysqli_stmt_close($stmt);
+            }
+        }
+
+        header("Location: provider_dashboard.php");
+        exit();
+    }
+}
+
 
 // Delete listing
 if (isset($_GET["delete"])) {
@@ -47,6 +140,72 @@ $sql = "SELECT * FROM Listings
 
 
 $result = mysqli_query($conn, $sql);
+
+/*
+|--------------------------------------------------------------------------
+| Notifications
+|--------------------------------------------------------------------------
+| Requires:
+| notifications(id, user_id, booking_id, message, type, is_read, created_at)
+|
+| If your notification table uses different column names, change this query.
+|--------------------------------------------------------------------------
+*/
+$notifications = [];
+$notification_count = 0;
+
+$notification_sql = "SELECT *
+                     FROM notifications
+                     WHERE user_id = '$provider_id'
+                     ORDER BY created_at DESC
+                     LIMIT 10";
+
+$notification_result = mysqli_query($conn, $notification_sql);
+
+if ($notification_result) {
+    while ($notification = mysqli_fetch_assoc($notification_result)) {
+        $notifications[] = $notification;
+
+        if (isset($notification["is_read"]) && $notification["is_read"] == 0) {
+            $notification_count++;
+        }
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| Pending virtual tour requests
+|--------------------------------------------------------------------------
+*/
+$pending_tours = [];
+
+$tour_sql = "SELECT
+                v.id,
+                v.listing_id,
+                v.student_id,
+                v.tour_date,
+                v.tour_time,
+                v.status,
+                l.RoomType,
+                l.Neighbourhood,
+                l.State,
+                l.Country
+             FROM virtual_tour_bookings v
+             LEFT JOIN Listings l
+                ON v.listing_id = l.ListingID
+             WHERE v.provider_id = '$provider_id'
+             AND v.status = 'Pending'
+             ORDER BY v.tour_date ASC, v.tour_time ASC";
+
+$tour_result = mysqli_query($conn, $tour_sql);
+
+if ($tour_result) {
+    while ($tour = mysqli_fetch_assoc($tour_result)) {
+        $pending_tours[] = $tour;
+    }
+}
+
+$pending_tour_count = count($pending_tours);
 
 ?>
 
@@ -132,6 +291,135 @@ $result = mysqli_query($conn, $sql);
 
         }
 
+         /* NOTIFICATION BUTTON */
+
+        .notification-wrapper {
+            position: relative;
+        }
+
+        .notification-button {
+            border: none;
+            background: transparent;
+            color: white;
+            cursor: pointer;
+            font-size: 22px;
+            position: relative;
+            padding: 4px 8px;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -3px;
+            min-width: 19px;
+            height: 19px;
+            padding: 2px 5px;
+            border-radius: 20px;
+            background: #e00000;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* NOTIFICATION PANEL */
+
+        .notification-panel {
+            display: none;
+            position: absolute;
+            top: 42px;
+            right: 65px;
+            width: 390px;
+            max-height: 620px;
+            overflow-y: auto;
+            background: white;
+            color: #222;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.20);
+            z-index: 1000;
+        }
+
+        .notification-panel.show {
+            display: block;
+        }
+
+        .notification-header {
+            padding: 18px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-header h3 {
+            margin: 0;
+            color: navy;
+        }
+
+        .notification-item {
+            padding: 17px 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .notification-item.unread {
+            background-color: #f5f7ff;
+        }
+
+        .notification-title {
+            color: navy;
+            font-weight: bold;
+            margin-bottom: 7px;
+        }
+
+        .notification-message {
+            color: #555;
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        .notification-time {
+            color: #888;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        .notification-actions {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .confirm-button,
+        .reject-button {
+            border: none;
+            padding: 8px 13px;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .confirm-button {
+            background: #16833b;
+        }
+
+        .reject-button {
+            background: #d00000;
+        }
+
+        .view-all-button {
+            display: block;
+            text-align: center;
+            padding: 14px;
+            color: navy;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .view-all-button:hover {
+            background: #f5f5f5;
+        }
 
         /* MAIN CONTAINER */
 
@@ -199,7 +487,49 @@ $result = mysqli_query($conn, $sql);
             background-color: #000066;
 
         }
+ 
+         /* PENDING REQUESTS */
 
+        .request-box {
+            background-color: white;
+            padding: 22px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+            border-left: 5px solid #f0ad00;
+        }
+
+        .request-box h2 {
+            color: navy;
+            margin-top: 0;
+        }
+
+        .request-count {
+            display: inline-block;
+            background: #fff3cd;
+            color: #856404;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-weight: bold;
+        }
+
+        .tour-request {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            background: #fff;
+        }
+
+        .tour-request h3 {
+            color: navy;
+            margin-top: 0;
+        }
+
+        .tour-request p {
+            margin: 7px 0;
+            color: #555;
+        }
 
         /* LISTINGS */
 
@@ -359,6 +689,26 @@ $result = mysqli_query($conn, $sql);
 
         }
 
+         @media (max-width: 700px) {
+
+            .header {
+                padding: 16px 20px;
+            }
+
+            .header-right {
+                gap: 10px;
+            }
+
+            .notification-panel {
+                right: -20px;
+                width: min(390px, 92vw);
+            }
+
+            .container {
+                width: 94%;
+            }
+        }
+
     </style>
 
 </head>
@@ -389,7 +739,102 @@ $result = mysqli_query($conn, $sql);
             ?>
 
         </span>
+        
 
+        <!-- NOTIFICATIONS -->
+
+        <div class="notification-wrapper">
+
+            <button
+                type="button"
+                class="notification-button"
+                onclick="toggleNotifications()"
+                title="Notifications"
+            >
+                🔔
+
+                <?php if ($notification_count > 0) { ?>
+                    <span class="notification-badge">
+                        <?php echo $notification_count; ?>
+                    </span>
+                <?php } ?>
+
+            </button>
+
+            <div id="notificationPanel" class="notification-panel">
+
+                <div class="notification-header">
+                    <h3>Notifications</h3>
+
+                    <span>
+                        <?php echo $notification_count; ?> new
+                    </span>
+                </div>
+
+                <?php if (count($notifications) > 0) { ?>
+
+                    <?php foreach ($notifications as $notification) { ?>
+
+                        <div
+                            class="notification-item <?php
+                                echo (
+                                    isset($notification["is_read"]) &&
+                                    $notification["is_read"] == 0
+                                )
+                                ? "unread"
+                                : "";
+                            ?>"
+                        >
+
+                            <div class="notification-title">
+                                <?php
+                                echo htmlspecialchars(
+                                    $notification["type"] ?? "Notification"
+                                );
+                                ?>
+                            </div>
+
+                            <div class="notification-message">
+                                <?php
+                                echo htmlspecialchars(
+                                    $notification["message"]
+                                );
+                                ?>
+                            </div>
+
+                            <?php if (!empty($notification["created_at"])) { ?>
+
+                                <div class="notification-time">
+                                    <?php
+                                    echo htmlspecialchars(
+                                        $notification["created_at"]
+                                    );
+                                    ?>
+                                </div>
+
+                            <?php } ?>
+
+                        </div>
+
+                    <?php } ?>
+
+                <?php } else { ?>
+
+                    <div class="notification-item">
+                        <div class="notification-message">
+                            No new notifications.
+                        </div>
+                    </div>
+
+                <?php } ?>
+
+                <a href="notifications.php" class="view-all-button">
+                    View All Notifications
+                </a>
+
+            </div>
+
+        </div>
 
         <a href="logout.php">
             Logout
@@ -435,7 +880,94 @@ $result = mysqli_query($conn, $sql);
 
     </div>
 
+    <!-- PENDING VIRTUAL TOUR REQUESTS -->
 
+    <?php if ($pending_tour_count > 0) { ?>
+
+        <div class="request-box">
+
+            <h2>
+                Virtual Tour Requests
+            </h2>
+
+            <span class="request-count">
+                <?php echo $pending_tour_count; ?> Pending
+            </span>
+
+            <?php foreach ($pending_tours as $tour) { ?>
+
+                <div class="tour-request">
+
+                    <h3>
+                        New Virtual Tour Request
+                    </h3>
+
+                    <p>
+                        <strong>Room:</strong>
+                        <?php
+                        echo htmlspecialchars($tour["RoomType"]);
+                        ?>
+                    </p>
+
+                    <p>
+                        <strong>Location:</strong>
+                        <?php
+                        echo htmlspecialchars($tour["Neighbourhood"]);
+                        ?>,
+                        <?php
+                        echo htmlspecialchars($tour["State"]);
+                        ?>,
+                        <?php
+                        echo htmlspecialchars($tour["Country"]);
+                        ?>
+                    </p>
+
+                    <p>
+                        <strong>Date:</strong>
+                        <?php
+                        echo htmlspecialchars($tour["tour_date"]);
+                        ?>
+                    </p>
+
+                    <p>
+                        <strong>Time:</strong>
+                        <?php
+                        echo htmlspecialchars(
+                            date(
+                                "h:i A",
+                                strtotime($tour["tour_time"])
+                            )
+                        );
+                        ?>
+                    </p>
+
+                    <div class="notification-actions">
+
+                        <a
+                            href="provider_dashboard.php?tour_action=confirm&tour_id=<?php echo $tour["id"]; ?>"
+                            class="confirm-button"
+                            onclick="return confirm('Confirm this virtual tour?');"
+                        >
+                            Confirm
+                        </a>
+
+                        <a
+                            href="provider_dashboard.php?tour_action=reject&tour_id=<?php echo $tour["id"]; ?>"
+                            class="reject-button"
+                            onclick="return confirm('Reject this virtual tour request?');"
+                        >
+                            Reject
+                        </a>
+
+                    </div>
+
+                </div>
+
+            <?php } ?>
+
+        </div>
+
+    <?php } ?>
 
     <!-- MY LISTINGS -->
 
@@ -673,6 +1205,40 @@ $result = mysqli_query($conn, $sql);
 
 
 </div>
+
+<script>
+
+function toggleNotifications() {
+
+    const panel =
+        document.getElementById("notificationPanel");
+
+    panel.classList.toggle("show");
+
+}
+
+
+/*
+ * Close notification panel when clicking outside it.
+ */
+document.addEventListener("click", function(event) {
+
+    const wrapper =
+        document.querySelector(".notification-wrapper");
+
+    const panel =
+        document.getElementById("notificationPanel");
+
+    if (
+        wrapper &&
+        !wrapper.contains(event.target)
+    ) {
+        panel.classList.remove("show");
+    }
+
+});
+
+</script>
 
 
 </body>

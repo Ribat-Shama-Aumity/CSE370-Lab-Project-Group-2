@@ -187,6 +187,52 @@ $utility_result = mysqli_query($conn, $utility_sql);
 
 $utility_count = mysqli_num_rows($utility_result);
 
+// ============================================================
+// PART 7 : ROOM BOOKING STATUS
+// ============================================================
+// A student can book this room once. Cancellation is allowed
+// for 3 days after the booking was made.
+// ============================================================
+
+$booking = null;
+$booking_exists = false;
+$cancel_allowed = false;
+
+$booking_sql = "SELECT * FROM room_bookings
+                WHERE Std_ID = '$std_id'
+                AND ListingID = '$safe_id'
+                AND status IN ('Booked', 'Confirmed')
+                ORDER BY id DESC
+                LIMIT 1";
+
+$booking_result = mysqli_query($conn, $booking_sql);
+
+if ($booking_result && mysqli_num_rows($booking_result) > 0) {
+    $booking = mysqli_fetch_assoc($booking_result);
+    $booking_exists = true;
+
+    if (!empty($booking["booked_at"])) {
+        $booking_time = strtotime($booking["booked_at"]);
+        $cancel_until = strtotime("+3 days", $booking_time);
+        $cancel_allowed = time() <= $cancel_until;
+    }
+}
+
+// ============================================================
+// PART 8 : STUDENT NOTIFICATIONS
+// ============================================================
+$notification_count = 0;
+$notification_sql = "SELECT COUNT(*) AS unread_count
+                     FROM notifications
+                     WHERE user_id = '$std_id'
+                     AND is_read = 0";
+$notification_result = mysqli_query($conn, $notification_sql);
+if ($notification_result) {
+    $notification_row = mysqli_fetch_assoc($notification_result);
+    $notification_count = (int)$notification_row["unread_count"];
+}
+
+
 ?>
 
 <!DOCTYPE html>
@@ -238,9 +284,41 @@ $utility_count = mysqli_num_rows($utility_result);
         font-size: 16px;
         margin-left: 25px;
     }
+    
+
+    .navigation {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
 
     .navigation a:hover {
         text-decoration: underline;
+    }
+
+       .notification-link {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        color: white !important;
+        text-decoration: none !important;
+        font-size: 20px !important;
+        margin-left: 0 !important;
+    }
+
+    .notification-badge {
+        position: absolute;
+        top: -9px;
+        right: -10px;
+        min-width: 18px;
+        height: 18px;
+        padding: 2px 5px;
+        border-radius: 20px;
+        background: #e00000;
+        color: white;
+        font-size: 10px;
+        font-weight: bold;
+        text-align: center;
     }
 
 
@@ -578,6 +656,162 @@ $utility_count = mysqli_num_rows($utility_result);
         font-size: 15px;
     }
 
+     /* ================= BOOKING ================= */
+
+    .action-card {
+        background-color: white;
+        padding: 25px 28px;
+        margin-bottom: 25px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    }
+
+    .action-card h2 {
+        color: #000080;
+        font-size: 20px;
+        margin: 0 0 6px 0;
+    }
+
+    .action-note {
+        color: #666;
+        font-size: 14px;
+        margin: 0 0 18px 0;
+    }
+
+    .booking-buttons {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .primary-action,
+    .secondary-action,
+    .danger-action,
+    .tour-action {
+        display: inline-block;
+        padding: 11px 20px;
+        border-radius: 7px;
+        text-decoration: none;
+        font-size: 14px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .primary-action {
+        background-color: #000080;
+        color: white;
+    }
+
+    .primary-action:hover {
+        background-color: #000066;
+    }
+
+    .secondary-action {
+        background-color: #e8f5ec;
+        color: #147333;
+        border: 1px solid #b8dfc3;
+    }
+
+    .danger-action {
+        background-color: white;
+        color: #c00000;
+        border: 1px solid #c00000;
+    }
+
+    .danger-action:hover {
+        background-color: #fff1f1;
+    }
+
+    .booked-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 14px;
+        border-radius: 18px;
+        background: #d4edda;
+        color: #155724;
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    .cancel-note {
+        margin-top: 13px;
+        color: #777;
+        font-size: 13px;
+    }
+
+    /* ================= VIRTUAL TOUR ================= */
+
+    .tour-card {
+        background-color: white;
+        padding: 25px 28px;
+        margin-bottom: 25px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    }
+
+    .tour-card h2 {
+        color: #000080;
+        font-size: 20px;
+        margin: 0 0 5px 0;
+    }
+
+    .tour-card p {
+        color: #666;
+        font-size: 14px;
+        margin: 0 0 18px 0;
+    }
+
+    .tour-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 14px;
+        align-items: end;
+    }
+
+    .tour-field label {
+        display: block;
+        color: #555;
+        font-size: 13px;
+        margin-bottom: 6px;
+        font-weight: bold;
+    }
+
+    .tour-field input {
+        width: 100%;
+        padding: 11px 12px;
+        border: 1px solid #ccc;
+        border-radius: 7px;
+        font-size: 14px;
+    }
+
+    .tour-action {
+        background-color: #000080;
+        color: white;
+    }
+
+    .tour-action:hover {
+        background-color: #000066;
+    }
+
+    .tour-info {
+        margin-top: 15px;
+        padding: 12px 14px;
+        border-radius: 7px;
+        background: #f5f7ff;
+        color: #555;
+        font-size: 13px;
+    }
+
+    .booking-alert {
+        margin-top: 15px;
+        padding: 12px 14px;
+        border-radius: 7px;
+        background: #fff3cd;
+        color: #856404;
+        font-size: 13px;
+    }
+
 
     /* ================= MOBILE ================= */
 
@@ -641,6 +875,13 @@ $utility_count = mysqli_num_rows($utility_result);
 
         <a href="faq.php">FAQ</a>
 
+         <a href="notifications.php" class="notification-link" title="Notifications">
+            🔔
+            <?php if ($notification_count > 0) { ?>
+                <span class="notification-badge"><?php echo $notification_count; ?></span>
+            <?php } ?>
+        </a>
+
         <a href="logout.php">Logout</a>
 
     </div>
@@ -650,7 +891,34 @@ $utility_count = mysqli_num_rows($utility_result);
 
 
 <div class="container">
+    <?php if (isset($_GET["booked"])) { ?>
+        <div style="background:#d4edda;color:#155724;padding:14px 18px;border-radius:8px;margin-bottom:18px;">
+            ✓ Booking confirmed successfully. The provider has been notified.
+        </div>
+    <?php } ?>
 
+    <?php if (isset($_GET["cancelled"])) { ?>
+        <div style="background:#fff3cd;color:#856404;padding:14px 18px;border-radius:8px;margin-bottom:18px;">
+            Booking cancelled successfully.
+        </div>
+    <?php } ?>
+
+    <?php if (isset($_GET["tour_booked"])) { ?>
+        <div style="background:#d4edda;color:#155724;padding:14px 18px;border-radius:8px;margin-bottom:18px;">
+            ✓ Virtual tour request sent. Waiting for provider confirmation.
+        </div>
+    <?php } ?>
+
+    <?php if (isset($_GET["tour_error"])) { ?>
+        <div style="background:#f8d7da;color:#721c24;padding:14px 18px;border-radius:8px;margin-bottom:18px;">
+            <?php
+            $tour_error = $_GET["tour_error"];
+            if ($tour_error == "taken") echo "That virtual tour time is already booked. Please choose another time.";
+            elseif ($tour_error == "bookfirst") echo "Please book the room before requesting a virtual tour.";
+            else echo "The virtual tour request could not be submitted.";
+            ?>
+        </div>
+    <?php } ?>
 
     <!-- ================= BACK LINK ================= -->
 
@@ -944,7 +1212,120 @@ $utility_count = mysqli_num_rows($utility_result);
 
     </div>
 
+     <!-- ================= ROOM BOOKING ================= -->
 
+    <div class="action-card">
+
+        <h2>Room Booking</h2>
+
+        <p class="action-note">
+            Reserve this room by confirming your booking details and agreeing to the booking terms.
+        </p>
+
+        <?php if (!$booking_exists) { ?>
+
+            <a
+                href="booking.php?id=<?php echo $safe_id; ?>"
+                class="primary-action"
+            >
+                Want to Book
+            </a>
+
+        <?php } else { ?>
+
+            <div class="booking-buttons">
+
+                <span class="booked-status">
+                    ✓ Booked
+                </span>
+
+                <?php if ($cancel_allowed) { ?>
+
+                    <a
+                        href="cancel_booking.php?id=<?php echo $safe_id; ?>"
+                        class="danger-action"
+                        onclick="return confirm('Are you sure you want to cancel this booking?');"
+                    >
+                        Cancel Booking
+                    </a>
+
+                <?php } ?>
+
+            </div>
+
+            <?php if ($cancel_allowed && !empty($booking["booked_at"])) { ?>
+                <div class="cancel-note">
+                    Cancellation is available until
+                    <?php echo date("d M Y, h:i A", strtotime($booking["booked_at"] . " +3 days")); ?>.
+                </div>
+            <?php } else { ?>
+                <div class="cancel-note">
+                    The 3-day cancellation period has ended. This booking can no longer be cancelled.
+                </div>
+            <?php } ?>
+
+        <?php } ?>
+
+    </div>
+
+
+    <!-- ================= VIRTUAL TOUR ================= -->
+
+    <div class="tour-card">
+
+        <h2>Virtual Tour</h2>
+
+        <p>
+            Choose a date and time to request a virtual tour of this room.
+            The provider will confirm your selected slot.
+        </p>
+
+        <?php if ($booking_exists) { ?>
+
+            <form class="tour-form" action="book_virtual_tour.php" method="POST">
+
+                <input type="hidden" name="listing_id" value="<?php echo $safe_id; ?>">
+
+                <div class="tour-field">
+                    <label for="tour_date">Date</label>
+                    <input
+                        type="date"
+                        id="tour_date"
+                        name="tour_date"
+                        min="<?php echo date('Y-m-d'); ?>"
+                        required
+                    >
+                </div>
+
+                <div class="tour-field">
+                    <label for="tour_time">Time</label>
+                    <input
+                        type="time"
+                        id="tour_time"
+                        name="tour_time"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="tour-action">
+                    Book Virtual Tour
+                </button>
+
+            </form>
+
+            <div class="tour-info">
+                After submitting, the request will appear in the provider's notifications as <strong>Pending</strong>.
+            </div>
+
+        <?php } else { ?>
+
+            <div class="booking-alert">
+                Please book the room first to request a virtual tour.
+            </div>
+
+        <?php } ?>
+
+    </div>
 
     <!-- ================= UTILITIES ================= -->
 

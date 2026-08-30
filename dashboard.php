@@ -697,44 +697,63 @@ while ($bookmark = mysqli_fetch_assoc($bookmark_result)) {
 </div>
 
 <!-- BOOKMARK JAVASCRIPT -->
+
 <script>
 
+console.log("Bookmark JavaScript loaded");
+
+
+/* =====================================================
+   TOGGLE HEART BOOKMARK
+   ===================================================== */
+
 function toggleBookmark(listingID, button) {
+
+    console.log("Heart clicked:", listingID);
 
     let formData = new FormData();
 
     formData.append("toggle", "1");
-
     formData.append("listing_id", listingID);
 
-
     fetch("bookmark.php", {
-
         method: "POST",
-
         body: formData
-
     })
 
-    .then(response => response.json())
+    .then(response => response.text())
 
-    .then(data => {
+    .then(text => {
+
+        console.log("Bookmark response:", text);
+
+        let data;
+
+        try {
+            data = JSON.parse(text);
+        }
+        catch (error) {
+            console.error("Invalid JSON:", text);
+            return;
+        }
 
         if (data.success) {
 
             if (data.bookmarked) {
 
                 button.innerHTML = "♥";
-
                 button.classList.add("saved");
 
             } else {
 
                 button.innerHTML = "♡";
-
                 button.classList.remove("saved");
 
             }
+
+        } else {
+
+            console.error("Bookmark failed:", data.message);
 
         }
 
@@ -742,56 +761,128 @@ function toggleBookmark(listingID, button) {
 
     .catch(error => {
 
-        console.log(error);
+        console.error("Bookmark request error:", error);
 
     });
 
 }
 
 
-/* OPEN BOOKMARKS */
+/* =====================================================
+   OPEN BOOKMARKS
+   ===================================================== */
 
-document
-.getElementById("bookmarkLink")
-.addEventListener("click", function(event) {
+document.addEventListener("DOMContentLoaded", function() {
 
-    event.preventDefault();
+    console.log("DOM loaded");
 
-    let popup =
+
+    const bookmarkLink =
+        document.getElementById("bookmarkLink");
+
+    const bookmarkPopup =
         document.getElementById("bookmarkPopup");
 
-    popup.style.display = "block";
+    const closeBookmarks =
+        document.getElementById("closeBookmarks");
 
-    loadBookmarks();
+
+    /* Check elements */
+
+    console.log("bookmarkLink:", bookmarkLink);
+    console.log("bookmarkPopup:", bookmarkPopup);
+    console.log("closeBookmarks:", closeBookmarks);
+
+
+    /* OPEN */
+
+    if (bookmarkLink) {
+
+        bookmarkLink.addEventListener("click", function(event) {
+
+            event.preventDefault();
+
+            console.log("Bookmarks clicked");
+
+            bookmarkPopup.style.display = "block";
+
+            loadBookmarks();
+
+        });
+
+    }
+
+
+    /* CLOSE */
+
+    if (closeBookmarks) {
+
+        closeBookmarks.addEventListener("click", function() {
+
+            bookmarkPopup.style.display = "none";
+
+        });
+
+    }
 
 });
 
 
-/* CLOSE BOOKMARKS */
-
-document
-.getElementById("closeBookmarks")
-.addEventListener("click", function() {
-
-    document
-    .getElementById("bookmarkPopup")
-    .style.display = "none";
-
-});
-
-
-/* LOAD BOOKMARKS */
+/* =====================================================
+   LOAD BOOKMARKS
+   ===================================================== */
 
 function loadBookmarks() {
 
-    let content =
+    console.log("Loading bookmarks...");
+
+
+    const content =
         document.getElementById("bookmarkContent");
+
+
+    content.innerHTML = "Loading...";
+
 
     fetch("bookmark.php?get=1")
 
-    .then(response => response.json())
+    .then(response => response.text())
 
-    .then(data => {
+    .then(text => {
+
+        console.log("Bookmarks response:", text);
+
+
+        let data;
+
+        try {
+
+            data = JSON.parse(text);
+
+        }
+        catch (error) {
+
+            console.error("Invalid JSON:", text);
+
+            content.innerHTML =
+                "Unable to load bookmarks.";
+
+            return;
+
+        }
+
+
+        if (!data.success) {
+
+            content.innerHTML =
+                data.message || "Unable to load bookmarks.";
+
+            return;
+
+        }
+
+
+        /* NO BOOKMARKS */
 
         if (data.bookmarks.length === 0) {
 
@@ -823,8 +914,11 @@ function loadBookmarks() {
             `;
 
             return;
+
         }
 
+
+        /* SHOW BOOKMARKS */
 
         content.innerHTML = "";
 
@@ -837,40 +931,64 @@ function loadBookmarks() {
             item.className =
                 "bookmark-item";
 
+
             item.innerHTML = `
-               
-                <a href="room.php?id=${room.ListingID}"
-                   style="text-decoration:none; color:inherit; display:block;">
 
-                <h4>
-                    ${room.RoomType}
-                </h4>
+                <a
+                    href="room.php?id=${room.ListingID}"
+                    style="
+                        text-decoration:none;
+                        color:inherit;
+                        display:block;
+                    "
+                >
 
-                <p>
-                    ${room.Neighbourhood},
-                    ${room.State},
-                    ${room.Country}
-                </p>
+                    <h4>
+                        ${room.RoomType}
+                    </h4>
 
-                <p>
-                    <strong>
-                        ${Number(room.Price).toFixed(2)}
-                        ${room.Currency}
-                    </strong>
-                    / month
-                </p>
-               </a>
+                    <p>
+                        ${room.Neighbourhood},
+                        ${room.State},
+                        ${room.Country}
+                    </p>
+
+                    <p>
+
+                        <strong>
+                            ${Number(room.Price).toFixed(2)}
+                            ${room.Currency}
+                        </strong>
+
+                        / month
+
+                    </p>
+
+                </a>
+
             `;
+
 
             content.appendChild(item);
 
         });
+
+    })
+
+    .catch(error => {
+
+        console.error("Load bookmarks error:", error);
+
+        content.innerHTML =
+            "Unable to load bookmarks.";
 
     });
 
 }
 
 </script>
+
+
 
 
 </body>
