@@ -302,17 +302,17 @@ if ($notification_result) {
         align-items: center;
         color: white !important;
         text-decoration: none !important;
-        font-size: 20px !important;
+        font-size: 16px !important;
         margin-left: 0 !important;
     }
 
     .notification-badge {
         position: absolute;
-        top: -9px;
-        right: -10px;
-        min-width: 18px;
-        height: 18px;
-        padding: 2px 5px;
+        top: -7px;
+        right: -9px;
+        min-width: 17px;
+        height: 17px;
+        padding: 1px 4px;
         border-radius: 20px;
         background: #e00000;
         color: white;
