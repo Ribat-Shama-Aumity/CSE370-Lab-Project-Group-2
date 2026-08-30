@@ -876,7 +876,7 @@ if ($notification_result) {
         <a href="faq.php">FAQ</a>
 
          <a href="notifications.php" class="notification-link" title="Notifications">
-            🔔
+            Notifications
             <?php if ($notification_count > 0) { ?>
                 <span class="notification-badge"><?php echo $notification_count; ?></span>
             <?php } ?>
