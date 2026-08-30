@@ -953,17 +953,7 @@ $pending_tour_count = count($pending_tours);
                         New Virtual Tour Request
                     </h3>
                     
-                      <!-- STUDENT -->
-                     <p>
-                         <strong>Student:</strong>
-
-                         <a 
-                           href="student_profile.php?id=<?php echo $tour["student_id"]; ?>"
-                           class="student-profile-link"
-                         >
-                           <?php echo htmlspecialchars($tour["student_name"]); ?>
-                         </a>
-                     </p>
+                     
 
                     <p>
                         <strong>Room:</strong>
