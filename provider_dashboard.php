@@ -154,10 +154,8 @@ $result = mysqli_query($conn, $sql);
 $notifications = [];
 $notification_count = 0;
 
-$notification_sql = "SELECT n.*, v.student_id
-                     FROM notifications n
-                     LEFT JOIN virtual_tour_bookings v
-                        ON n.booking_id = v.id
+$notification_sql = "SELECT *
+                     FROM notifications n   
                      WHERE n.user_id = '$provider_id'
                      ORDER BY n.created_at DESC
                      LIMIT 10";
@@ -409,15 +407,7 @@ $pending_tour_count = count($pending_tours);
              text-decoration: underline;
         }
 
-        .student-profile-link {
-             color: navy;
-             font-weight: bold;
-            text-decoration: none;
-        }
-
-         .student-profile-link:hover {
-             text-decoration: underline;
-         }
+      
 
         .confirm-button,
         .reject-button {
@@ -974,7 +964,7 @@ $pending_tour_count = count($pending_tours);
                            <?php echo htmlspecialchars($tour["student_name"]); ?>
                          </a>
                      </p>
-                     
+
                     <p>
                         <strong>Room:</strong>
                         <?php
