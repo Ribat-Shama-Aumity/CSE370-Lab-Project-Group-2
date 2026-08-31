@@ -18,7 +18,7 @@ if (!isset($_GET["std_id"])) {
     exit();
 }
 
-$std_id = $_GET["std_id"];
+$std_id = mysqli_real_escape_string($conn, $_GET["std_id"]);
 
 
 /* Get verification document information */

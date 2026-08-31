@@ -9,8 +9,10 @@ $message = "";
 if (isset($_POST["login"])) {
 
     $userType = $_POST["userType"];
-    $username = $_POST["username"];
-    $password = $_POST["password"];
+
+    // clean the two values before they go into any query
+    $username = mysqli_real_escape_string($conn, $_POST["username"]);
+    $password = mysqli_real_escape_string($conn, $_POST["password"]);
 
 
     /* STUDENT LOGIN */

@@ -2,8 +2,19 @@
 
 session_start();
 
+// Notifications are only for students and providers.
+// An admin has no Std_ID or Provider_ID, so we send
+// them back to their own dashboard.
+
 if (!isset($_SESSION["loggedIn"])) {
     header("Location: login.php");
+    exit();
+}
+
+if ($_SESSION["userType"] != "student" &&
+    $_SESSION["userType"] != "provider") {
+
+    header("Location: admin_dashboard.php");
     exit();
 }
 

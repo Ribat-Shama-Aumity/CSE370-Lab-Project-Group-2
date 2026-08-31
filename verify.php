@@ -25,9 +25,9 @@ $message = "";
 
 if (isset($_POST["verify"])) {
 
-    $university_id = $_POST["university_id"];
-    $university_name = $_POST["university_name"];
-    $university_email = $_POST["university_email"];
+    $university_id = mysqli_real_escape_string($conn, $_POST["university_id"]);
+    $university_name = mysqli_real_escape_string($conn, $_POST["university_name"]);
+    $university_email = mysqli_real_escape_string($conn, $_POST["university_email"]);
 
 
     // ========================================================

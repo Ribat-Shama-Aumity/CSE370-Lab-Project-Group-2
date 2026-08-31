@@ -6,12 +6,12 @@ $message = "";
 
 if (isset($_POST["signup"])) {
 
-    $username = $_POST["username"];
-    $first_name = $_POST["first_name"];
-    $last_name = $_POST["last_name"];
-    $email = $_POST["email"];
-    $password = $_POST["password"];
-    $phone = $_POST["phone"];
+    $username = mysqli_real_escape_string($conn, $_POST["username"]);
+    $first_name = mysqli_real_escape_string($conn, $_POST["first_name"]);
+    $last_name = mysqli_real_escape_string($conn, $_POST["last_name"]);
+    $email = mysqli_real_escape_string($conn, $_POST["email"]);
+    $password = mysqli_real_escape_string($conn, $_POST["password"]);
+    $phone = mysqli_real_escape_string($conn, $_POST["phone"]);
 
 
     // Check username or email already exists

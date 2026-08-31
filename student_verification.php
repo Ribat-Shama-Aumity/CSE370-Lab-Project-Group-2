@@ -24,7 +24,7 @@ $admin_id = $_SESSION["Admin_ID"];
 
 if (isset($_GET["approve"])) {
 
-    $std_id = $_GET["approve"];
+    $std_id = mysqli_real_escape_string($conn, $_GET["approve"]);
 
 
     // Verification approve করা
@@ -63,7 +63,7 @@ if (isset($_GET["approve"])) {
 
 if (isset($_GET["reject"])) {
 
-    $std_id = $_GET["reject"];
+    $std_id = mysqli_real_escape_string($conn, $_GET["reject"]);
 
 
     // Verification reject করা

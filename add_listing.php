@@ -20,18 +20,18 @@ $message = "";
 
 if (isset($_POST["add_listing"])) {
 
-    $price = $_POST["price"];
-    $currency = $_POST["currency"];
+    $price = mysqli_real_escape_string($conn, $_POST["price"]);
+    $currency = mysqli_real_escape_string($conn, $_POST["currency"]);
 
-    $room_type = $_POST["room_type"];
+    $room_type = mysqli_real_escape_string($conn, $_POST["room_type"]);
 
-    $country = $_POST["country"];
-    $state = $_POST["state"];
-    $neighbourhood = $_POST["neighbourhood"];
+    $country = mysqli_real_escape_string($conn, $_POST["country"]);
+    $state = mysqli_real_escape_string($conn, $_POST["state"]);
+    $neighbourhood = mysqli_real_escape_string($conn, $_POST["neighbourhood"]);
 
-    $clinic = $_POST["clinic"];
-    $grocery = $_POST["grocery"];
-    $campus = $_POST["campus"];
+    $clinic = mysqli_real_escape_string($conn, $_POST["clinic"]);
+    $grocery = mysqli_real_escape_string($conn, $_POST["grocery"]);
+    $campus = mysqli_real_escape_string($conn, $_POST["campus"]);
 
     $provider_id = $_SESSION["Provider_ID"];
 

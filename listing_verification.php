@@ -27,7 +27,7 @@ $message = "";
 
 if (isset($_GET["approve"])) {
 
-    $listing_id = $_GET["approve"];
+    $listing_id = mysqli_real_escape_string($conn, $_GET["approve"]);
 
 
     $sql = "UPDATE Listings
@@ -50,7 +50,7 @@ if (isset($_GET["approve"])) {
 
 if (isset($_GET["reject"])) {
 
-    $listing_id = $_GET["reject"];
+    $listing_id = mysqli_real_escape_string($conn, $_GET["reject"]);
 
 
     $sql = "UPDATE Listings

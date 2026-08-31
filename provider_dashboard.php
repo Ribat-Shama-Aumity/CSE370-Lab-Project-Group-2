@@ -115,7 +115,7 @@ if (isset($_GET["tour_action"]) && isset($_GET["tour_id"])) {
 // Delete listing
 if (isset($_GET["delete"])) {
 
-    $listing_id = $_GET["delete"];
+    $listing_id = mysqli_real_escape_string($conn, $_GET["delete"]);
 
 
     $sql = "DELETE FROM Listings

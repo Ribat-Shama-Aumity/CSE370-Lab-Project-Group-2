@@ -10,7 +10,7 @@ if (!isset($_SESSION["loggedIn"]) || $_SESSION["userType"] != "student") {
 include "DBconnect.php";
 
 $std_id = $_SESSION["Std_ID"];
-$listing_id = $_GET["id"];
+$listing_id = mysqli_real_escape_string($conn, $_GET["id"]);
 
 
 // Get room information
@@ -36,8 +36,8 @@ $error = "";
 // When Confirm Your Booking is clicked
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    $password = $_POST["password"];
-    $arrival_date = $_POST["arrival_date"];
+    $password = mysqli_real_escape_string($conn, $_POST["password"]);
+    $arrival_date = mysqli_real_escape_string($conn, $_POST["arrival_date"]);
 
     if (!isset($_POST["terms"])) {
 
