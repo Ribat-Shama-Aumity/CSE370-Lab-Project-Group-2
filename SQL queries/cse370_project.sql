@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 31, 2026 at 11:26 AM
+-- Generation Time: Aug 31, 2026 at 01:54 PM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -61,19 +61,6 @@ CREATE TABLE `bookmarks` (
 
 INSERT INTO `bookmarks` (`BookmarkID`, `Std_ID`, `ListingID`, `CreatedAt`) VALUES
 (27, 23101004, 8, '2026-08-30 19:23:30');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `books`
---
-
-CREATE TABLE `books` (
-  `Std_ID` int(11) NOT NULL,
-  `ListingID` int(11) NOT NULL,
-  `SlotTime` datetime DEFAULT NULL,
-  `VirtualTour` tinyint(1) NOT NULL DEFAULT 0
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -148,6 +135,29 @@ CREATE TABLE `listing_photo` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `listing_review`
+--
+
+CREATE TABLE `listing_review` (
+  `Std_ID` int(11) NOT NULL,
+  `ListingID` int(11) NOT NULL,
+  `Rating` int(11) NOT NULL,
+  `Comment` text DEFAULT NULL,
+  `Created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `listing_review`
+--
+
+INSERT INTO `listing_review` (`Std_ID`, `ListingID`, `Rating`, `Comment`, `Created_at`) VALUES
+(23101001, 8, 5, 'Great location and the provider fixed the water heater the same day I reported it.', '2026-08-31 11:07:51'),
+(23101002, 8, 4, 'Quiet street and close to campus. The wifi drops sometimes in the evening.', '2026-08-31 11:07:51'),
+(23101004, 8, 5, 'Good value for the price.', '2026-08-31 11:07:51');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `listing_utility`
 --
 
@@ -156,6 +166,42 @@ CREATE TABLE `listing_utility` (
   `UtilityName` varchar(50) NOT NULL,
   `Amount` decimal(10,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `listing_utility`
+--
+
+INSERT INTO `listing_utility` (`ListingID`, `UtilityName`, `Amount`) VALUES
+(6, 'Electricity', 1200.00),
+(6, 'Gas', 500.00),
+(6, 'Heating', 200.00),
+(6, 'Water', 300.00),
+(6, 'Wifi', 800.00),
+(7, 'Electricity', 1200.00),
+(7, 'Gas', 500.00),
+(7, 'Heating', 200.00),
+(7, 'Water', 300.00),
+(7, 'Wifi', 800.00),
+(8, 'Electricity', 1200.00),
+(8, 'Gas', 500.00),
+(8, 'Heating', 200.00),
+(8, 'Water', 300.00),
+(8, 'Wifi', 800.00),
+(9, 'Electricity', 45.00),
+(9, 'Gas', 25.00),
+(9, 'Heating', 10.00),
+(9, 'Water', 15.00),
+(9, 'Wifi', 30.00),
+(10, 'Electricity', 60.00),
+(10, 'Gas', 35.00),
+(10, 'Heating', 15.00),
+(10, 'Water', 20.00),
+(10, 'Wifi', 40.00),
+(11, 'Electricity', 60.00),
+(11, 'Gas', 35.00),
+(11, 'Heating', 15.00),
+(11, 'Water', 20.00),
+(11, 'Wifi', 40.00);
 
 -- --------------------------------------------------------
 
@@ -179,7 +225,9 @@ CREATE TABLE `notifications` (
 
 INSERT INTO `notifications` (`id`, `user_id`, `booking_id`, `message`, `type`, `is_read`, `created_at`) VALUES
 (1, 1, 1, 'A student booked your room. Arrival date: 2026-09-01', 'Room Booking', 0, '2026-08-30 23:47:38'),
-(2, 1, 1, 'New virtual tour request for Studio on 04 Sep 2026 at 07:54 PM.', 'Virtual Tour Request', 0, '2026-08-30 23:48:08');
+(2, 1, 1, 'New virtual tour request for Studio on 04 Sep 2026 at 07:54 PM.', 'Virtual Tour Request', 0, '2026-08-30 23:48:08'),
+(3, 1, 4, 'A student booked your room. Arrival date: 2026-09-03', 'Room Booking', 0, '2026-08-31 17:23:14'),
+(4, 1, 2, 'New virtual tour request for Single Room on 02 Sep 2026 at 10:00 AM.', 'Virtual Tour Request', 0, '2026-08-31 17:23:42');
 
 -- --------------------------------------------------------
 
@@ -227,7 +275,10 @@ CREATE TABLE `room_bookings` (
 --
 
 INSERT INTO `room_bookings` (`id`, `ListingID`, `Std_ID`, `Provider_ID`, `arrival_date`, `status`, `terms_agreed`, `booked_at`, `cancelled_at`) VALUES
-(1, 8, 23101004, 1, '2026-09-01', 'Booked', 1, '2026-08-30 23:47:38', NULL);
+(1, 8, 23101004, 1, '2026-09-01', 'Booked', 1, '2026-08-30 23:47:38', NULL),
+(2, 8, 23101001, 1, '2026-09-15', 'Booked', 1, '2026-08-31 17:07:51', NULL),
+(3, 8, 23101002, 1, '2026-09-20', 'Booked', 1, '2026-08-31 17:07:51', NULL),
+(4, 10, 23101004, 1, '2026-09-03', 'Booked', 1, '2026-08-31 17:23:14', NULL);
 
 -- --------------------------------------------------------
 
@@ -364,7 +415,8 @@ CREATE TABLE `virtual_tour_bookings` (
 --
 
 INSERT INTO `virtual_tour_bookings` (`id`, `listing_id`, `student_id`, `provider_id`, `tour_date`, `tour_time`, `status`, `created_at`) VALUES
-(1, 8, 23101004, 1, '2026-09-04', '19:54:00', 'Pending', '2026-08-30 23:48:08');
+(1, 8, 23101004, 1, '2026-09-04', '19:54:00', 'Pending', '2026-08-30 23:48:08'),
+(2, 10, 23101004, 1, '2026-09-02', '10:00:00', 'Pending', '2026-08-31 17:23:42');
 
 --
 -- Indexes for dumped tables
@@ -376,7 +428,6 @@ INSERT INTO `virtual_tour_bookings` (`id`, `listing_id`, `student_id`, `provider
 ALTER TABLE `admin`
   ADD PRIMARY KEY (`Admin_ID`),
   ADD UNIQUE KEY `Email` (`Email`),
-  ADD UNIQUE KEY `Password` (`Password`),
   ADD UNIQUE KEY `Username` (`Username`);
 
 --
@@ -385,13 +436,6 @@ ALTER TABLE `admin`
 ALTER TABLE `bookmarks`
   ADD PRIMARY KEY (`BookmarkID`),
   ADD UNIQUE KEY `Std_ID` (`Std_ID`,`ListingID`),
-  ADD KEY `ListingID` (`ListingID`);
-
---
--- Indexes for table `books`
---
-ALTER TABLE `books`
-  ADD PRIMARY KEY (`Std_ID`,`ListingID`),
   ADD KEY `ListingID` (`ListingID`);
 
 --
@@ -417,6 +461,13 @@ ALTER TABLE `listing_photo`
   ADD KEY `ListingID` (`ListingID`);
 
 --
+-- Indexes for table `listing_review`
+--
+ALTER TABLE `listing_review`
+  ADD PRIMARY KEY (`Std_ID`,`ListingID`),
+  ADD KEY `ListingID` (`ListingID`);
+
+--
 -- Indexes for table `listing_utility`
 --
 ALTER TABLE `listing_utility`
@@ -439,7 +490,10 @@ ALTER TABLE `reviews`
 -- Indexes for table `room_bookings`
 --
 ALTER TABLE `room_bookings`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `room_bookings_ibfk_1` (`ListingID`),
+  ADD KEY `room_bookings_ibfk_2` (`Std_ID`),
+  ADD KEY `room_bookings_ibfk_3` (`Provider_ID`);
 
 --
 -- Indexes for table `room_provider`
@@ -455,7 +509,6 @@ ALTER TABLE `room_provider`
 ALTER TABLE `student`
   ADD PRIMARY KEY (`Std_ID`),
   ADD UNIQUE KEY `Email` (`Email`),
-  ADD UNIQUE KEY `Password` (`Password`),
   ADD UNIQUE KEY `Username` (`Username`);
 
 --
@@ -481,7 +534,10 @@ ALTER TABLE `verification_doc_fileurl`
 -- Indexes for table `virtual_tour_bookings`
 --
 ALTER TABLE `virtual_tour_bookings`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `virtual_tour_bookings_ibfk_1` (`listing_id`),
+  ADD KEY `virtual_tour_bookings_ibfk_2` (`student_id`),
+  ADD KEY `virtual_tour_bookings_ibfk_3` (`provider_id`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -497,7 +553,7 @@ ALTER TABLE `admin`
 -- AUTO_INCREMENT for table `bookmarks`
 --
 ALTER TABLE `bookmarks`
-  MODIFY `BookmarkID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `BookmarkID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
 -- AUTO_INCREMENT for table `faq`
@@ -521,13 +577,13 @@ ALTER TABLE `listing_photo`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `room_bookings`
 --
 ALTER TABLE `room_bookings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `room_provider`
@@ -545,7 +601,7 @@ ALTER TABLE `student`
 -- AUTO_INCREMENT for table `virtual_tour_bookings`
 --
 ALTER TABLE `virtual_tour_bookings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Constraints for dumped tables
@@ -555,14 +611,8 @@ ALTER TABLE `virtual_tour_bookings`
 -- Constraints for table `bookmarks`
 --
 ALTER TABLE `bookmarks`
-  ADD CONSTRAINT `bookmarks_ibfk_1` FOREIGN KEY (`ListingID`) REFERENCES `listings` (`ListingID`) ON DELETE CASCADE;
-
---
--- Constraints for table `books`
---
-ALTER TABLE `books`
-  ADD CONSTRAINT `books_ibfk_1` FOREIGN KEY (`Std_ID`) REFERENCES `student` (`Std_ID`) ON DELETE CASCADE,
-  ADD CONSTRAINT `books_ibfk_2` FOREIGN KEY (`ListingID`) REFERENCES `listings` (`ListingID`) ON DELETE CASCADE;
+  ADD CONSTRAINT `bookmarks_ibfk_1` FOREIGN KEY (`ListingID`) REFERENCES `listings` (`ListingID`) ON DELETE CASCADE,
+  ADD CONSTRAINT `bookmarks_ibfk_2` FOREIGN KEY (`Std_ID`) REFERENCES `student` (`Std_ID`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `faq`
@@ -584,6 +634,13 @@ ALTER TABLE `listing_photo`
   ADD CONSTRAINT `listing_photo_ibfk_1` FOREIGN KEY (`ListingID`) REFERENCES `listings` (`ListingID`) ON DELETE CASCADE;
 
 --
+-- Constraints for table `listing_review`
+--
+ALTER TABLE `listing_review`
+  ADD CONSTRAINT `listing_review_ibfk_1` FOREIGN KEY (`Std_ID`) REFERENCES `student` (`Std_ID`) ON DELETE CASCADE,
+  ADD CONSTRAINT `listing_review_ibfk_2` FOREIGN KEY (`ListingID`) REFERENCES `listings` (`ListingID`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `listing_utility`
 --
 ALTER TABLE `listing_utility`
@@ -595,6 +652,14 @@ ALTER TABLE `listing_utility`
 ALTER TABLE `reviews`
   ADD CONSTRAINT `reviews_ibfk_1` FOREIGN KEY (`Reviewer_ID`) REFERENCES `student` (`Std_ID`) ON DELETE CASCADE,
   ADD CONSTRAINT `reviews_ibfk_2` FOREIGN KEY (`Reviewee_ID`) REFERENCES `student` (`Std_ID`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `room_bookings`
+--
+ALTER TABLE `room_bookings`
+  ADD CONSTRAINT `room_bookings_ibfk_1` FOREIGN KEY (`ListingID`) REFERENCES `listings` (`ListingID`) ON DELETE CASCADE,
+  ADD CONSTRAINT `room_bookings_ibfk_2` FOREIGN KEY (`Std_ID`) REFERENCES `student` (`Std_ID`) ON DELETE CASCADE,
+  ADD CONSTRAINT `room_bookings_ibfk_3` FOREIGN KEY (`Provider_ID`) REFERENCES `room_provider` (`Provider_ID`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `utility_expense`
@@ -614,6 +679,14 @@ ALTER TABLE `verification_doc`
 --
 ALTER TABLE `verification_doc_fileurl`
   ADD CONSTRAINT `verification_doc_fileurl_ibfk_1` FOREIGN KEY (`Std_ID`) REFERENCES `verification_doc` (`Std_ID`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `virtual_tour_bookings`
+--
+ALTER TABLE `virtual_tour_bookings`
+  ADD CONSTRAINT `virtual_tour_bookings_ibfk_1` FOREIGN KEY (`listing_id`) REFERENCES `listings` (`ListingID`) ON DELETE CASCADE,
+  ADD CONSTRAINT `virtual_tour_bookings_ibfk_2` FOREIGN KEY (`student_id`) REFERENCES `student` (`Std_ID`) ON DELETE CASCADE,
+  ADD CONSTRAINT `virtual_tour_bookings_ibfk_3` FOREIGN KEY (`provider_id`) REFERENCES `room_provider` (`Provider_ID`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

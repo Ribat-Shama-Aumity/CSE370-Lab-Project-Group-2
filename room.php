@@ -227,10 +227,15 @@ $notification_sql = "SELECT COUNT(*) AS unread_count
                      WHERE user_id = '$std_id'
                      AND is_read = 0";
 $notification_result = mysqli_query($conn, $notification_sql);
+$notification_result = mysqli_query($conn, $notification_sql);
 if ($notification_result) {
     $notification_row = mysqli_fetch_assoc($notification_result);
     $notification_count = (int)$notification_row["unread_count"];
 }
+
+
+/* ===== ROOM REVIEW FEATURE ===== */
+include "listing_review.php";
 
 
 ?>
@@ -1476,6 +1481,11 @@ if ($notification_result) {
 
 
     </div>
+
+    
+    <!-- ===== ROOM REVIEW FEATURE ===== -->
+
+    <?php include "listing_review_box.php"; ?>
 
 
 </div>

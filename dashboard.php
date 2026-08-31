@@ -411,8 +411,6 @@ while ($bookmark = mysqli_fetch_assoc($bookmark_result)) {
 
     border: none;
 
-    font-size: 28px;
-
     color: #777;
 
     cursor: pointer;
@@ -420,6 +418,18 @@ while ($bookmark = mysqli_fetch_assoc($bookmark_result)) {
     padding: 0;
 
     line-height: 1;
+
+}
+
+
+
+.bookmark-heart svg {
+
+    width: 26px;
+
+    height: 26px;
+
+    display: block;
 
 }
 
@@ -433,7 +443,7 @@ while ($bookmark = mysqli_fetch_assoc($bookmark_result)) {
 
 .bookmark-heart.saved {
 
-    color: red;
+    color: #e0245e;
 
 }
 </style>
@@ -563,7 +573,35 @@ while ($bookmark = mysqli_fetch_assoc($bookmark_result)) {
 
                  <?php
 
-                 echo $is_bookmarked ? "♥" : "♡";
+                 // The SAME heart shape is used for both states.
+                 // Only "fill" changes: none = empty, currentColor
+                 // = filled. Before this we used the characters
+                 // ♥ and ♡, but they are two different letters in
+                 // the font, so the shape jumped when you clicked.
+
+                 if ($is_bookmarked) {
+
+                     echo '<svg viewBox="0 0 24 24" fill="currentColor"
+                                stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                             <path d="M12 20 C12 20 3 14 3 8.5
+                                      A4.5 4.5 0 0 1 12 6
+                                      A4.5 4.5 0 0 1 21 8.5
+                                      C21 14 12 20 12 20 Z"/>
+                           </svg>';
+
+                 } else {
+
+                     echo '<svg viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                             <path d="M12 20 C12 20 3 14 3 8.5
+                                      A4.5 4.5 0 0 1 12 6
+                                      A4.5 4.5 0 0 1 21 8.5
+                                      C21 14 12 20 12 20 Z"/>
+                           </svg>';
+
+                 }
 
                  ?>
 
@@ -741,12 +779,26 @@ function toggleBookmark(listingID, button) {
 
             if (data.bookmarked) {
 
-                button.innerHTML = "♥";
+                button.innerHTML =
+                    '<svg viewBox="0 0 24 24" fill="currentColor" ' +
+                    'stroke="currentColor" stroke-width="2" ' +
+                    'stroke-linecap="round" stroke-linejoin="round">' +
+                    '<path d="M12 20 C12 20 3 14 3 8.5 ' +
+                    'A4.5 4.5 0 0 1 12 6 A4.5 4.5 0 0 1 21 8.5 ' +
+                    'C21 14 12 20 12 20 Z"/></svg>';
+
                 button.classList.add("saved");
 
             } else {
 
-                button.innerHTML = "♡";
+                button.innerHTML =
+                    '<svg viewBox="0 0 24 24" fill="none" ' +
+                    'stroke="currentColor" stroke-width="2" ' +
+                    'stroke-linecap="round" stroke-linejoin="round">' +
+                    '<path d="M12 20 C12 20 3 14 3 8.5 ' +
+                    'A4.5 4.5 0 0 1 12 6 A4.5 4.5 0 0 1 21 8.5 ' +
+                    'C21 14 12 20 12 20 Z"/></svg>';
+
                 button.classList.remove("saved");
 
             }
@@ -890,8 +942,16 @@ function loadBookmarks() {
 
                 <div class="no-bookmarks">
 
-                    <div style="font-size:40px;">
-                        ♡
+                    <div style="color:#bbb;">
+                        <svg viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="1.6"
+                             stroke-linecap="round" stroke-linejoin="round"
+                             style="width:44px; height:44px;">
+                            <path d="M12 20 C12 20 3 14 3 8.5
+                                     A4.5 4.5 0 0 1 12 6
+                                     A4.5 4.5 0 0 1 21 8.5
+                                     C21 14 12 20 12 20 Z"/>
+                        </svg>
                     </div>
 
                     <div>
