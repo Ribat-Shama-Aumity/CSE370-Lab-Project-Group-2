@@ -1,0 +1,138 @@
+# GlobalNest — Progress Notes (Ribat)
+
+Student sub-lease and roommate matching website.
+Stack: PHP, MySQL, HTML/CSS, XAMPP + phpMyAdmin.
+Three user types: student, admin, room provider.
+
+
+## MY FEATURES
+
+### 1. Filter — student dashboard
+Files: `filter.php` (the logic), `filter_box.php` (what you see)
+Connected to `dashboard.php` with 2 include lines and 2 one-line swaps.
+
+- Four tabs: Country, Locality, Budget (with currency), Room Type
+- Grid / List toggle
+- NO JavaScript. Uses PHP + GET, so every choice travels in the
+  address bar and the results can be bookmarked or shared.
+- Currency and Locality only offer options belonging to the chosen
+  Country. If an old choice no longer fits it is cleared, otherwise
+  the page would silently show 0 listings.
+- Hidden inputs carry the choices for tabs that are not on screen,
+  and they sit OUTSIDE the pop-up so they survive when it closes.
+  (A form only sends the inputs actually on the page.)
+- SQL: SELECT, WHERE, AND, IN, DISTINCT, ORDER BY
+
+### 2. FAQ
+Files: `faq.php` (student), `faq_admin.php` (admin)
+Connected with one link in `dashboard.php` and one in `admin_dashboard.php`.
+
+- Students see answered questions only
+- A student can ask a question; it stays hidden until an admin
+  answers it, so a confirmation message is shown instead
+- "Asked by [name]" uses LEFT JOIN, because Std_ID can be NULL for
+  general questions. A plain JOIN would delete those rows.
+- IS NULL / IS NOT NULL, because "= NULL" never matches anything
+- SQL: SELECT, INSERT, UPDATE, LEFT JOIN, IS NULL, IS NOT NULL
+
+### 3. Room Dashboard
+File: `room.php`
+New tables: `listing_utility`, `listing_photo`
+Connected: the listing card in `dashboard.php` is now a link.
+
+- Photos (1 big, 2 small), grey placeholder when none uploaded
+- Clinic / Grocery / Campus in a row under the photos
+- Favourite button writes to the `bookmarks` table
+- Five utilities with a total: Electricity, Wifi, Gas, Water, Heating
+- Utilities are a SEPARATE TABLE, not columns on Listings.
+  Adding Heating later needed only new rows, no ALTER TABLE.
+  That is the payoff of normalisation.
+- mysqli_insert_id() gets the new ListingID after an INSERT,
+  because AUTO_INCREMENT means the database chooses the number.
+- SQL: SELECT, INSERT, DELETE, JOIN, composite primary key,
+  foreign key with ON DELETE CASCADE
+
+### 4. Room Reviews
+Files: `listing_review.php` (logic), `listing_review_box.php` (display)
+New table: `listing_review`. Included at the bottom of `room.php`.
+
+- Star average + list of reviews + write/edit form
+- Only a student who has BOOKED the room may review it. The form is
+  hidden for everyone else, AND the server checks again before
+  saving — never trust the browser.
+- Primary key (Std_ID, ListingID) means one review per student per
+  room. A second submit becomes an UPDATE, not a duplicate.
+- Plain JOIN here, not LEFT JOIN, because Std_ID is NOT NULL with a
+  foreign key, so every review must belong to a real student.
+- After saving we redirect, so refreshing does not resubmit.
+- SQL: CREATE TABLE, INSERT, UPDATE, SELECT, JOIN, AVG(), COUNT()
+
+### 5. Security pass
+Added `mysqli_real_escape_string` to every $_POST and $_GET value
+that reaches a query, across 11 files. Stops SQL injection — typing
+`' OR '1'='1` into the login used to log you in without a password.
+It also fixes a real bug: names with apostrophes like O'Brien could
+not sign up before.
+
+### 6. Database integrity fixes
+- Dropped the UNIQUE key on Password in `student` and `admin`.
+  It meant two people could never choose the same password.
+- Added the missing foreign key on `bookmarks.Std_ID`
+- Added 3 foreign keys to `room_bookings`
+- Added 3 foreign keys to `virtual_tour_bookings`
+- Dropped `books`, which had been replaced by `room_bookings`
+  and `virtual_tour_bookings`
+
+
+## FILES OF MY GROUPMATES THAT I EDITED
+
+- `dashboard.php`           — filter includes, card is a link, heart icon
+- `add_listing.php`         — 5 utility fields, 3 photo uploads
+- `listing_verification.php`— admin can see photos and utilities
+- `login.php`               — added $_SESSION["provider_name"]
+- `notifications.php`       — admins are sent to their own dashboard
+- Deleted `student_home.php`— dead code, queried a table that never existed
+
+
+## KNOWN ISSUES
+
+- `notifications.user_id` holds a Std_ID sometimes and a Provider_ID
+  other times, so it CANNOT have a foreign key. If redesigned we
+  would split it into two tables, or add a user_type column.
+- Two bookmark styles: `dashboard.php` uses JavaScript + `bookmark.php`
+  (AJAX, returns JSON), `room.php` uses a plain link. Same table,
+  two techniques.
+- `reviews` (roommate reviews) and `utility_expense` are designed and
+  have sample data, but no page was built for them.
+- Mixed SQL styles: most files build query strings and escape the
+  values; `book_virtual_tour.php` and `cancel_booking.php` use
+  prepared statements.
+
+
+## STILL TO DO
+
+- Final schema diagram and ER diagram (Chen notation)
+- Optional: a page for `utility_expense`
+- Optional: a page for `reviews` (roommate reviews)
+
+
+## TEAM RULE
+
+Whoever changes the database exports it from phpMyAdmin and commits
+the .sql in the SAME commit as the PHP. Never hand-edit the .sql.
+
+
+## TEST ACCOUNTS
+
+Provider : see `room_provider` table in phpMyAdmin
+Admin    : see `admin` table
+Student  : see `student` table
+
+
+## HOW TO SET UP ON A NEW MACHINE
+
+1. Copy the project folder into `xampp/htdocs/`
+2. Start Apache and MySQL in the XAMPP control panel
+3. phpMyAdmin → New → create a database named `CSE370_project`
+4. Select it → Import → choose `SQL queries/cse370_project.sql` → Go
+5. Open http://localhost/CSE370_project/login.php
