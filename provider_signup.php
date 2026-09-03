@@ -62,7 +62,7 @@ if (isset($_POST["signup"])) {
 
         body {
             font-family: Arial;
-            background-color: #f5f5f5;
+            background-color: #9788d4;
         }
 
         .box {
