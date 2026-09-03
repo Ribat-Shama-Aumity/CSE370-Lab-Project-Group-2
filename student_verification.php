@@ -5,7 +5,7 @@ session_start();
 include "DBconnect.php";
 
 
-// Admin login করা আছে কিনা check
+
 if (!isset($_SESSION["loggedIn"]) || $_SESSION["userType"] != "admin") {
 
     header("Location: login.php");
@@ -27,7 +27,7 @@ if (isset($_GET["approve"])) {
     $std_id = mysqli_real_escape_string($conn, $_GET["approve"]);
 
 
-    // Verification approve করা
+    
     $sql = "UPDATE Verification_doc
 
             SET Verification_Status = 'Approved',
@@ -40,7 +40,7 @@ if (isset($_GET["approve"])) {
     mysqli_query($conn, $sql);
 
 
-    // Student-কে verified করা
+    
     $sql2 = "UPDATE Student
 
              SET is_Verified = 1
@@ -66,7 +66,7 @@ if (isset($_GET["reject"])) {
     $std_id = mysqli_real_escape_string($conn, $_GET["reject"]);
 
 
-    // Verification reject করা
+    
     $sql = "UPDATE Verification_doc
 
             SET Verification_Status = 'Rejected',
@@ -79,7 +79,7 @@ if (isset($_GET["reject"])) {
     mysqli_query($conn, $sql);
 
 
-    // Student verified থাকবে না
+   
     $sql2 = "UPDATE Student
 
              SET is_Verified = 0

@@ -5,7 +5,7 @@ session_start();
 include "DBconnect.php";
 
 
-// Admin login করা আছে কিনা check
+
 if (!isset($_SESSION["loggedIn"]) || $_SESSION["userType"] != "admin") {
 
     header("Location: login.php");
