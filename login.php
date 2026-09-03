@@ -416,9 +416,7 @@ if (isset($_POST["login"])) {
         <?php } ?>
 
 
-        <div class="footer">
-            © 2026 Global Nest
-        </div>
+        
 
 
     </div>
